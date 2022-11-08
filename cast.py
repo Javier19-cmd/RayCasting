@@ -10,11 +10,21 @@ SKY = (0, 100, 200)
 GROUND = (0, 100, 0)
 
 colors = [
-    (0,  0, 0),
+    (0, 20, 10),
     (4, 40, 63),
     (0, 91, 82),
     (219, 242, 38),
+    (21, 42, 138),
 ]
+
+#Texturas de paredes.
+walls = {
+    "1": pygame.image.load("wall1.png"),
+    "2": pygame.image.load("wall2.png"),
+    "3": pygame.image.load("wall3.png"),
+    "4": pygame.image.load("wall4.png"),
+    "5": pygame.image.load("wall5.png"),
+}
 
 class Raycaster(object):
     def __init__(self, screen):
@@ -41,9 +51,12 @@ class Raycaster(object):
         glClear(GL_COLOR_BUFFER_BIT)
         glDisable(GL_SCISSOR_TEST)
 
-    def block(self, x, y, c = WHITE): #Dibuja un bloque en la pantalla.
+    def block(self, x, y, wall): #Dibuja un bloque en la pantalla.
         for i in range(x, x + self.blocksize + 1):
             for j in range(y, y + self.blocksize + 1):
+                tx = (i - x) * 128 / self.blocksize
+                ty = (i - y) * 128 / self.blocksize
+                c = texture.get_at((tx, ty))
                 self.point(i, j, c)
 
     def load_map(self, filename): #Carga el mapa.
@@ -88,7 +101,7 @@ class Raycaster(object):
                 
                 if self.map[j][i] != ' ': #Si el bloque no es un espacio.
                     #print(colors[int(self.map[j][i])])
-                    self.block(x, y, colors[int(self.map[j][i])])
+                    self.block(x, y, walls[self.map[j][i]])
     
     def draw_player(self): #Dibuja al jugador.
         #self.block(self.player["x"], self.player["y"], (255, 0, 0))
