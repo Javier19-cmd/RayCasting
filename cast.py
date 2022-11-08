@@ -52,11 +52,12 @@ class Raycaster(object):
         glDisable(GL_SCISSOR_TEST)
 
     def block(self, x, y, wall): #Dibuja un bloque en la pantalla.
-        for i in range(x, x + self.blocksize + 1):
-            for j in range(y, y + self.blocksize + 1):
-                tx = (i - x) * 128 / self.blocksize
-                ty = (i - y) * 128 / self.blocksize
-                c = texture.get_at((tx, ty))
+        for i in range(x, x + self.blocksize):
+            for j in range(y, y + self.blocksize):
+                tx = int((i - x) * 128 / self.blocksize)
+                ty = int((j - y) * 128 / self.blocksize)
+                #print(tx, ty)
+                c = wall.get_at((tx, ty))
                 self.point(i, j, c)
 
     def load_map(self, filename): #Carga el mapa.
@@ -65,12 +66,17 @@ class Raycaster(object):
                 self.map.append(list(line))
         #print(self.map)
 
-    def draw_stake(self, x, h, c): #Dibuja un stake.
+    def draw_stake(self, x, h, c, tx): #Dibuja un stake.
         start_y = int(self.h/2 - h/2)
         end_y = int(self.h/2 + h/2)
+        height = end_y - start_y
 
         for y in range(start_y, end_y): #Dibuja el stake.
-            self.point(x, y, c)
+            ty = int((y - start_y) * 128 / height) #Posicion en y de la textura.
+
+            color = walls[c].get_at((tx, ty))
+            
+            self.point(x, y, color) #Dibuja la pared.d
 
     def cast_ray(self, a): #Castea un rayo.
         d = 0 #Contador.
@@ -84,8 +90,17 @@ class Raycaster(object):
             i = int(x/self.blocksize) #Posicion en x del mapa.
             j = int(y/self.blocksize) #Posicion en y del mapa.
 
-            if self.map[j][i] != ' ':
-                return d, self.map[j][i]
+            if self.map[j][i] != ' ': #Si el bloque no es un espacio.
+                hitx = x - i * self.blocksize #Posicion en x del bloque.
+                hity = y - j * self.blocksize #Posicion en y del bloque.
+
+                if 1 < hitx < self.blocksize - 1: #Si la posicion en x del bloque esta entre 1 y el tamaño del bloque - 1.
+                    maxhit = hitx #Maximo de hit en x.
+                else:  
+                    maxhit = hity #Maximo de hit en y.
+
+                tx = int(maxhit * 128 / self.blocksize) #Posicion en x de la textura.
+                return d, self.map[j][i], tx
 
             #print(x, y)
             self.point(x, y) #Dibuja el rayo.
@@ -115,7 +130,7 @@ class Raycaster(object):
         #Minimapa.
         for i in range(0, density):
             a = self.player["a"] - self.player["fov"]/2 + self.player["fov"] * i/density 
-            d, c = self.cast_ray(a)
+            d, c, tx = self.cast_ray(a)
 
         #Línea.
         for i in range(0, 500):
@@ -127,12 +142,12 @@ class Raycaster(object):
         #Pared.
         for i in range(0, int(self.w/2)): #Sirve para dibujar las paredes.
             a = self.player["a"] - self.player["fov"]/2 + self.player["fov"] * i/(int(self.w/2)) 
-            d, c = self.cast_ray(a) 
+            d, c, tx = self.cast_ray(a) 
 
             x = int(self.w/2) + i #Largo de la pared.
             h = self.h/(d * cos(a - self.player["a"])) * 100
 
-            self.draw_stake(x, h, colors[int(c)]) #Dibuja la pared.
+            self.draw_stake(x, h, c, tx) #Dibuja la pared.
 
 pygame.init() #Inicializa pygame.
 screen = pygame.display.set_mode((1000, 500)) #Crea la pantalla.
@@ -159,16 +174,25 @@ while running:
         
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT: #Si se presiona la tecla derecha.
-                r.player["x"] += 10
+                r.player["x"] -= 20
             if event.key == pygame.K_LEFT: #Si se presiona la tecla izquierda.
-                r.player["x"] -= 10
+                r.player["x"] += 20
             if event.key == pygame.K_UP: #Si se presiona la tecla arriba.
-                r.player["y"] -= 10
+                r.player["y"] += 20
             if event.key == pygame.K_DOWN: #Si se presiona la tecla abajo.
-                r.player["y"] += 10
+                r.player["y"] -= 20
 
             if event.key == pygame.K_a: #Si se presiona la tecla a.
-                r.player["a"] -= pi/10
+                r.player["a"] -= pi/25
             
             if event.key == pygame.K_d: #Si se presiona la tecla d.
-                r.player["a"] += pi/10
+                r.player["a"] += pi/25
+
+            #Esto me lo inventé yo.
+            if event.key == pygame.K_w: #Si se presiona la tecla w.
+                r.player["y"] += int(20 * sin(r.player["a"]))
+                r.player["x"] += int(20 * cos(r.player["a"]))
+            
+            if event.key == pygame.K_s: #Si se presiona la tecla s.
+                r.player["y"] -= int(20 * sin(r.player["a"]))
+                r.player["x"] -= int(20 * cos(r.player["a"]))
