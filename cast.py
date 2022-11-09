@@ -172,7 +172,7 @@ class Raycaster(object):
                     self.point(x, y, c)
 
     def render(self): #Dibuja el mapa.
-        self.draw_map()
+        self.draw_map() #Dibuja el mini mapa.
         self.draw_player()
 
         density = 100 #Densidad de rayos.
@@ -201,6 +201,7 @@ class Raycaster(object):
             
             except: #Si d * cos(a - self.player["a"]) es cero, entonces el personaje se sale de la escena.
             
+                #Detener al personaje.
                 h = 0
 
             self.draw_stake(x, h, c, tx) #Dibuja la pared.
