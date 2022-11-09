@@ -8,6 +8,7 @@ WHITE = (200, 210, 220)
 RED = (255, 0, 0)
 SKY = (0, 100, 200)
 GROUND = (0, 100, 0)
+TRANSPARENT = (152, 0, 136, 0)
 
 colors = [
     (0, 20, 10),
@@ -25,6 +26,25 @@ walls = {
     "4": pygame.image.load("wall4.png"),
     "5": pygame.image.load("wall5.png"),
 }
+
+#Texturas de los enemigos.
+sprite1 = pygame.image.load("sprite1.png")
+sprite2 = pygame.image.load("sprite2.png")
+sprite3 = pygame.image.load("sprite3.png")
+
+enemies = {
+    "x": 90,
+    "y": 90,
+    "sprite": sprite1,
+
+    "x2": 90,
+    "y2": 90,
+    "sprite2": sprite2,
+
+    "x3": 90,
+    "y3": 90,
+    "sprite3": sprite3,
+} #Posicion de los enemigos.
 
 class Raycaster(object):
     def __init__(self, screen):
@@ -122,6 +142,29 @@ class Raycaster(object):
         #self.block(self.player["x"], self.player["y"], (255, 0, 0))
         self.point(self.player["x"], self.player["y"])
 
+    def draw_enemies(self, sprite): #Dibuja a los enemigos.
+        sprite_x = 500
+        sprite_y = 0
+        sprite_size = 128 
+
+        d = (
+            (self.player["x"] - sprite["x"]) ** 2 
+            + 
+            (self.player["y"] - sprite["y"]) ** 2
+        )**0.5
+
+        
+
+        #Dibujando el sprite.
+        for x in range(sprite_x, sprite_x + sprite_size):
+            for y in range(sprite_y, sprite_y + sprite_size):
+                tx = int((x - sprite_x))
+                ty = int((y - sprite_y))
+                c = sprite["sprite"].get_at((tx, ty))
+                
+                if c != TRANSPARENT:
+                    self.point(x, y, c)
+
     def render(self): #Dibuja el mapa.
         self.draw_map()
         self.draw_player()
@@ -145,7 +188,14 @@ class Raycaster(object):
             d, c, tx = self.cast_ray(a) 
 
             x = int(self.w/2) + i #Largo de la pared.
-            h = self.h/(d * cos(a - self.player["a"])) * 100
+            
+            try: #Si d * cos(a - self.player["a"]) no es 0, entonces el personaje está dentro de la escena.
+
+                h = self.h/(d * cos(a - self.player["a"])) * 100
+            
+            except: #Si d * cos(a - self.player["a"]) es cero, entonces el personaje se sale de la escena.
+            
+                h = 0
 
             self.draw_stake(x, h, c, tx) #Dibuja la pared.
 
