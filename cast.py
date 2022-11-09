@@ -143,9 +143,14 @@ class Raycaster(object):
         self.point(self.player["x"], self.player["y"])
 
     def draw_enemies(self, sprite): #Dibuja a los enemigos.
-        sprite_x = 500
-        sprite_y = 0
-        sprite_size = 128 
+        sprite_a = atan2(
+            sprite["y"] - self.player["y"],
+            sprite["x"] - self.player["x"]
+        )
+
+
+        sprite_size = int(500/d * (500/10)) #Hacerlo como se hicieron las paredes. 
+
 
         d = (
             (self.player["x"] - sprite["x"]) ** 2 
@@ -153,7 +158,8 @@ class Raycaster(object):
             (self.player["y"] - sprite["y"]) ** 2
         )**0.5
 
-        
+        sprite_x = 500 + (sprite_a - self.player["a"]) * 500 / self.player["fov"]
+        sprite_y = 0        
 
         #Dibujando el sprite.
         for x in range(sprite_x, sprite_x + sprite_size):
