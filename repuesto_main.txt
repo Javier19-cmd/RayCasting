@@ -1,0 +1,38 @@
+pygame.init()
+    pygame.display.set_caption("Game of Life")
+    pantalla = pygame.display.set_mode((800, 600))
+    
+    cells = np.zeros((600//10, 800//10)) #Matriz de células.
+    pantalla.fill(fondo)
+    actualizar(pantalla, cells, 10)
+    
+    pygame.display.flip()
+    pygame.display.update()
+
+    r = False #Variable para saber si se está mostrando el progreso.
+    
+    while True: #Bucle principal.
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                # = True
+                pygame.quit()
+                return
+            if event.type == pygame.KEYDOWN: #Si se pulsa una tecla se muestra el progreso.
+                if event.key == pygame.K_SPACE: #Si se pulsa la barra espaciadora, se muestra el progreso.
+                    r = not r #Cambiamos el valor de la variable.
+                    actualizar(pantalla, cells, 10) #Actualizamos el estado de las células.
+                    pygame.display.update()
+
+            if pygame.mouse.get_pressed()[0]: #Si se pulsa el ratón, se cambia el estado de la célula.
+                pos = pygame.mouse.get_pos()
+                cells[pos[1]//10, pos[0]//10] = 1
+                #pygame.draw.rect(pantalla, vida, (x//10*10, y//10*10, 10 - 1, 10 - 1))
+                actualizar(pantalla, cells, 10)
+                pygame.display.update()
+
+        pantalla.fill(grid) #Dibujamos la cuadrícula.
+        if r: #Si se está mostrando el progreso, se actualiza el estado de las células.
+            cells = actualizar(pantalla, cells, 10, progreso = True)
+            pygame.display.update()
+        
+        time.sleep(0.1)
