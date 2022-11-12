@@ -1,6 +1,7 @@
-from math import *
-import pygame
 import random
+from math import *
+
+import pygame
 from OpenGL.GL import *
 
 BLACK = (0, 0, 0)
