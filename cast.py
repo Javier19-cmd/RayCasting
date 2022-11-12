@@ -59,6 +59,10 @@ class Raycaster(object):
             "fov": int(pi/3), #Campo de vision.
             "a": int(pi/3), #Angulo.
         }
+        self.clearZ() #Limpia el buffer de profundidad.
+    
+    def clearZ(self):
+        self.zbuffer = [99999 for z in range(0, self.w)] #Buffer de profundidad.
 
     def point(self, x, y, color = RED): #Dibuja un punto en la pantalla.
         #print(x, y, color)
@@ -121,6 +125,7 @@ class Raycaster(object):
                     maxhit = hity #Maximo de hit en y.
 
                 tx = int(maxhit * 128 / self.blocksize) #Posicion en x de la textura.
+                
                 return d, self.map[j][i], tx
 
             #print(x, y)
@@ -177,7 +182,9 @@ class Raycaster(object):
 
                 if color != TRANSPARENT: #Si el color no es transparente, entonces se dibuja el sprite.
                     if x > 500: #Si la posicion en x del sprite es menor a 500, entonces se dibuja el sprite.
-                        self.point(x, y, color)
+                        if self.zbuffer[x - 500] >= d: #Si el zbuffer es igual a la distancia, entonces se dibuja el sprite.
+                            self.point(x, y, color)
+                            self.zbuffer[x - 500] = d 
 
     def render(self): #Dibuja el mapa.
         self.draw_map() #Dibuja el mini mapa.
@@ -199,7 +206,7 @@ class Raycaster(object):
         #Pared.
         for i in range(0, int(self.w/2)): #Sirve para dibujar las paredes.
             a = self.player["a"] - self.player["fov"]/2 + self.player["fov"] * i/(int(self.w/2)) 
-            d, c, tx = self.cast_ray(a) 
+            d, c, tx = self.cast_ray(a)
 
             x = int(self.w/2) + i #Largo de la pared.
             
@@ -212,7 +219,12 @@ class Raycaster(object):
                 #Detener al personaje.
                 h = 0
 
-            self.draw_stake(x, h, c, tx) #Dibuja la pared.
+            if self.zbuffer[i] >= d:
+                self.draw_stake(x, h, c, tx) #Dibuja la pared.
+                self.zbuffer[i] = d
+
+        # for enemy in enemies:
+        #     self.point(enemy["x"], enemy["y"], (255, 0, 0))
 
         #Dibujando a los enemigos.
         for enemy in enemies:
@@ -235,6 +247,7 @@ while running:
     #r.pixel(x, y, WHITE) #Dibuja un punto blanco en la pantalla.
     #r.point(x, y) #Dibuja un pixel blanco en la pantalla.
     #r.block(x, y) #Dibuja un bloque blanco en la pantalla.
+    r.clearZ()
     r.render() #Dibujando el mapa.
     pygame.display.flip() #Actualiza la pantalla.
 
