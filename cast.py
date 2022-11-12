@@ -9,7 +9,7 @@ WHITE = (200, 210, 220)
 RED = (255, 0, 0)
 SKY = (0, 100, 200)
 GROUND = (0, 100, 0)
-TRANSPARENT = (152, 0, 136, 0)
+TRANSPARENT = (152, 0, 136, 255)
 
 colors = [
     (0, 20, 10),
@@ -32,20 +32,20 @@ walls = {
 sprite1 = pygame.image.load("sprite1.png")
 sprite2 = pygame.image.load("sprite2.png")
 sprite3 = pygame.image.load("sprite3.png")
+sprite4 = pygame.image.load("sprite4.png")
 
-enemies = {
-    "x": 90,
-    "y": 90,
-    "sprite": sprite1,
-
-    "x2": 90,
-    "y2": 90,
-    "sprite2": sprite2,
-
-    "x3": 90,
-    "y3": 90,
-    "sprite3": sprite3,
-} #Posicion de los enemigos.
+enemies = [
+    {
+        "x": 150,
+        "y": 150,
+        "sprite": sprite1,
+    },
+    {
+        "x": 300,
+        "y": 300,
+        "sprite": sprite2,
+    },
+] #Lista de enemigos.
 
 class Raycaster(object):
     def __init__(self, screen):
@@ -149,28 +149,35 @@ class Raycaster(object):
             sprite["x"] - self.player["x"]
         )
 
-
-        sprite_size = int(500/d * (500/10)) #Hacerlo como se hicieron las paredes. 
-
-
         d = (
             (self.player["x"] - sprite["x"]) ** 2 
             + 
             (self.player["y"] - sprite["y"]) ** 2
         )**0.5
 
-        sprite_x = 500 + (sprite_a - self.player["a"]) * 500 / self.player["fov"]
-        sprite_y = 0        
+        sprite_size = int(500/d * (500/10))
+
+        sprite_x = int(
+            500 #Offset del mapa.
+            + 
+            (sprite_a - self.player["a"]) * 500/self.player["fov"] # Angulo del enemigo y del jugador.
+            + 
+            sprite_size/2
+        )
+        
+        sprite_y = int(500/2 - sprite_size/2) #Posicion en y del enemigo. Mitad de la pantalla menos el tamaño del enemigo.
 
         #Dibujando el sprite.
-        for x in range(sprite_x, sprite_x + sprite_size):
+        for x in range (sprite_x, sprite_x + sprite_size):
             for y in range(sprite_y, sprite_y + sprite_size):
-                tx = int((x - sprite_x))
-                ty = int((y - sprite_y))
-                c = sprite["sprite"].get_at((tx, ty))
-                
-                if c != TRANSPARENT:
-                    self.point(x, y, c)
+                tx = int((x - sprite_x) * 128 / sprite_size)
+                ty = int((y - sprite_y) * 128 / sprite_size)
+
+                color = sprite["sprite"].get_at((tx, ty)) #Color del sprite.
+
+                if color != TRANSPARENT: #Si el color no es transparente, entonces se dibuja el sprite.
+                    if x > 500: #Si la posicion en x del sprite es menor a 500, entonces se dibuja el sprite.
+                        self.point(x, y, color)
 
     def render(self): #Dibuja el mapa.
         self.draw_map() #Dibuja el mini mapa.
@@ -206,6 +213,11 @@ class Raycaster(object):
                 h = 0
 
             self.draw_stake(x, h, c, tx) #Dibuja la pared.
+
+        #Dibujando a los enemigos.
+        for enemy in enemies:
+            #print(enemy)
+            self.draw_enemies(enemy)
 
 pygame.init() #Inicializa pygame.
 screen = pygame.display.set_mode((1000, 500)) #Crea la pantalla.
